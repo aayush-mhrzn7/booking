@@ -23,6 +23,8 @@ router
       }
       try {
         const { email, password, firstName, lastName } = req.body;
+        console.log(req.body);
+        console.log(email);
         let user = await User.findOne({ email });
         if (user) {
           return res

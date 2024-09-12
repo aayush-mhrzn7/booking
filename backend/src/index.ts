@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "*" }));
 
 mongoose.connect(process.env.MONGODB_URL as string).then(() => {
   console.log("mongo db has been sucessfull connected");
