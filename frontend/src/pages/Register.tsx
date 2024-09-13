@@ -9,7 +9,7 @@ export type RegisterForm = {
   password: string;
 };
 import * as apiClient from "../api-clients";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 function Register() {
   const {
     register,
@@ -106,7 +106,9 @@ function Register() {
       {errors.password && (
         <p className="text-red-500">{errors.password.message}</p>
       )}
-
+      <span className="text-sm">
+        already Registered? <Link to="/login">Click herer</Link>
+      </span>
       <span>
         <button
           type="submit"

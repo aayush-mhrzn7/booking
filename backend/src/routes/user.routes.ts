@@ -1,10 +1,10 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model"; // Ensure the correct path to your User model
 
 const router = Router();
 
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response) => {
   try {
     const { email, password, firstName, lastName } = req.body;
 
@@ -30,7 +30,7 @@ router.post("/register", async (req, res) => {
     // Generate a JWT token
     const token = jwt.sign(
       {
-        userID: user._id,
+        userId: user._id,
       },
       process.env.JWTSECRET as string,
       { expiresIn: "1d" }
