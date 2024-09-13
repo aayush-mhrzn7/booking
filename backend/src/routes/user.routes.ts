@@ -1,64 +1,54 @@
-import { Router, Request, Response } from "express";
-import User from "../models/user.model";
+import { Router } from "express";
 import jwt from "jsonwebtoken";
-import { check, validationResult } from "express-validator";
+import User from "../models/user.model"; // Ensure the correct path to your User model
+
 const router = Router();
 
-router
-  .route("/register")
-  .post(
-    [
-      check("email", "email is required").isEmail(),
-      check("firstName", "first name is required").isString(),
-      check("lastName", "last name is required").isString(),
-      check(
-        "password",
-        "password is required and should be greater than 6 charecter"
-      ).isLength({ min: 6 }),
-    ],
-    async (req: Request, res: Response) => {
-      const err = validationResult(req);
-      if (err.isEmpty()) {
-        return res.status(400).json({ message: err.array() });
-      }
-      try {
-        const { email, password, firstName, lastName } = req.body;
-        console.log(req.body);
-        console.log(email);
-        let user = await User.findOne({ email });
-        if (user) {
-          return res
-            .status(400)
-            .json({ message: "the user with this email already exist" });
-        }
-        user = await User.create({
-          email,
-          password,
-          firstName,
-          lastName,
-        });
-        await user.save();
-        const token = jwt.sign(
-          {
-            userID: user._id,
-          },
-          process.env.JWTSECRET as string,
-          { expiresIn: process.env.EXPIRYJWT as string }
-        );
+router.post("/register", async (req, res) => {
+  try {
+    const { email, password, firstName, lastName } = req.body;
 
-        return res
-          .status(200)
-          .cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 86400000,
-          })
-          .json({ message: "user has been created", data: user });
-      } catch (error) {
-        return res
-          .status(500)
-          .json({ message: "Server Error during registering User" });
-      }
+    // Check if the user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res
+        .status(400)
+        .json({ message: "The user with this email already exists" });
     }
-  );
+
+    // Create a new user
+    user = await User.create({
+      email,
+      password,
+      firstName,
+      lastName,
+    });
+
+    // Save the user
+    await user.save();
+
+    // Generate a JWT token
+    const token = jwt.sign(
+      {
+        userID: user._id,
+      },
+      process.env.JWTSECRET as string,
+      { expiresIn: "1d" }
+    );
+
+    // Send the response with the token in a cookie
+    return res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 86400000, // 1 day
+      })
+      .json({ message: "User has been created", data: user });
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 export default router;
